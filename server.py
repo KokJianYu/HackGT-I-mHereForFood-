@@ -119,8 +119,8 @@ def send():
 @app.route('/send_text', methods=['POST'])
 def send_text():
     print("received text")
-    data = request.data
-    print(data)
+    text_to_say = request.data.decode("utf-8") 
+    print(text_to_say)
 
 
     # f = open('test.wav', 'wb')
