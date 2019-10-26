@@ -1,4 +1,5 @@
 from flask import Flask, Response,render_template, request
+import flask
 import pyaudio
 import wave
 
@@ -84,16 +85,17 @@ def audio():
 def index():
     return render_template('index.html')
 
-@app.route('/get_recording')
+@app.route('/get_recording.ogg')
 def get_recording():
-    def getshit():
-      f = open('output.wav', 'rb')
-      byte = f.read(1000)
-      while byte != "":
-          # Do stuff with byte.
-          yield byte
-          byte = f.read(1000)
-    return Response(getshit())
+    return flask.send_file("./new_output.ogg")
+    # def getshit():
+    #   f = open('output.wav', 'rb')
+    #   byte = f.read(1000)
+    #   while byte != "":
+    #       # Do stuff with byte.
+    #       yield byte
+    #       byte = f.read(1000)
+    # return Response(getshit())
 
 @app.route('/ui')
 def ui():
@@ -114,7 +116,7 @@ def stop():
     import soundfile as sf
 
     data, samplerate = sf.read('output.wav')
-    sf.write('new_output.ogg', data, samplerate)
+    sf.write('new_output.flac', data, samplerate)
 
     return 'stopped'
 
@@ -141,4 +143,4 @@ def recording():
 
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', debug=True, threaded=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
