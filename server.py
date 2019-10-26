@@ -91,6 +91,10 @@ def get_recording():
 
 @app.route('/ui')
 def ui():
+    if request.url.startswith('http://'):
+        url = request.url.replace('http://', 'https://', 1).replace("5000", "5001", 1)
+        code = 301
+        return flask.redirect(url, code=code)
     return render_template('ui.html')
 
 @app.route('/start')
@@ -155,5 +159,11 @@ def recording():
     return 'ok'
 
 
-if __name__ == "__main__":
+def http_app():
     app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
+
+if __name__ == "__main__":
+    from multiprocessing import Process
+
+    Process(target=http_app, daemon=True).start()
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context="adhoc")
