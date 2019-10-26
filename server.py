@@ -31,6 +31,12 @@ class AsyncGitTask(threading.Thread):
 
       f.close()
 
+class AsyncTimerTask(threading.Thread):
+   def run(self):
+      import time
+      now = time.time()
+
+
 app = Flask(__name__)
 
 
@@ -85,9 +91,9 @@ def audio():
 def index():
     return render_template('index.html')
 
-@app.route('/testtest.wav')
-def get_recording():
-    return flask.send_file("./test.wav")
+@app.route('/send_music/<name>')
+def get_recording(name):
+    return flask.send_file(name)
 
 @app.route('/ui')
 def ui():
@@ -128,13 +134,31 @@ def send():
 @app.route('/send_text', methods=['POST'])
 def send_text():
     print("received text")
-    data = request.data
-    print(data)
+    mytext = request.form.get('text')
+    mytime = request.form.get('time')
 
+    from gtts import gTTS  
+    import time
 
-    # f = open('test.wav', 'wb')
-    # f.write(data)
-    # f.close()
+    myobj = gTTS(text=mytext, lang='en', slow=False)
+    filename = mytime + ".mp3"
+    myobj.save(filename)
+
+    import sched, time, datetime
+
+    def play_reminder():
+      import requests
+      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.85:5000/send_music/" + filename + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
+      headers = {'Content-Type': 'application/xml'} # set what your server accepts
+      requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
+
+    # Set up scheduler
+    s = sched.scheduler(time.time, time.sleep)
+    # # Schedule when you want the action to occur
+    s.enterabs(float(mytime)//1000, 0, play_reminder)
+    # # Block until the action has been run
+    s.run()
+
     return "okokokok"
 
 @app.route('/recording', methods=['POST'])
