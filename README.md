@@ -2,4 +2,4 @@
 
 This is a repo for HackGT 2019 hackathon event. 
 
-Doing an application utilizing Bose SoundTouch API
+Building an application utilizing Bose SoundTouch API
