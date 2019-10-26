@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <title>imhereforfood</title>
+  </head>
+  <body>
+    <h3>hello food</h3>
+    <button onclick="sendDatRadioStream()">live</button>
+    <button>reminder</button>
+    <div id="reminder">
+      <label for="remind">Choose a time for your reminder:</label>
+      <input
+        type="time"
+        id="remind"
+        name="remind"
+        min="00:00"
+        max="23:59"
+        required
+      />
+      <label for="record">Record something for your reminder:</label>
+      <button id="recordButton">record</button>
+    </div>
+  </body>
+  <script>
+    function sendDatRadioStream() {
+      console.log("Sending radio stream...");
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/send", true);
+      xhr.setRequestHeader("Content-Type", "text/xml");
+      var xml =
+        "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://85.186.254.205:50390//;stream/1</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>25</volume></play_info>";
+      xhr.send(xml);
+    }
+
+    var isRecording = false;
+    var recordButton, stopButton, recorder;
+
+    recordButton = document.getElementById("recordButton");
+    // get audio stream from user's mic
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: true
+      })
+      .then(function(stream) {
+        recordButton.addEventListener("click", toggleRecording);
+
+        recorder = new MediaRecorder(stream);
+
+        // listen to dataavailable, which gets triggered whenever we have
+        // an audio blob available
+        recorder.addEventListener("dataavailable", onRecordingReady);
+      });
+
+    function toggleRecording() {
+      if (isRecording) {
+        isRecording = false
+        recordButton.innerHTML = "record"
+        console.log("Stopping");
+        recorder.stop();
+      } else {
+        isRecording = true
+        recordButton.innerHTML = "stop"
+        console.log("Starting recording");
+        recorder.start();
+      }
+    }
+
+    function onRecordingReady(e) {
+      let audioChunks = []
+      audioChunks.push(e.data)
+      let blob = new Blob(audioChunks, { type: "audio/mpeg-3" });
+      sendData(blob);
+    }
+
+    function sendData(blob) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/recording", true);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      xhr.send(blob);
+    }
+  </script>
+</html>
