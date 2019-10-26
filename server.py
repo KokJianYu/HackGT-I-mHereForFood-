@@ -23,7 +23,7 @@ class AsyncGitTask(threading.Thread):
                           rate=RATE, input=True,
                           frames_per_buffer=CHUNK)
       data = wav_header + stream.read(CHUNK)
-      f = open('output', 'ab')
+      f = open('output.wav', 'ab')
       while is_recording:
           f.write(data)
 
@@ -105,6 +105,11 @@ def stop():
     print("stopping")
     global is_recording
     is_recording = False
+    import soundfile as sf
+
+    data, samplerate = sf.read('output.wav')
+    sf.write('new_output.ogg', data, samplerate)
+
     return 'stopped'
 
 @app.route('/send', methods=['POST'])
