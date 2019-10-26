@@ -86,7 +86,7 @@ def index():
 
 @app.route('/get_recording')
 def get_recording():
-    def getshit()
+    def getshit():
       f = open('output', 'rb')
       byte = f.read(1000)
       while byte != "":
@@ -113,6 +113,15 @@ def stop():
     is_recording = False
     return 'stopped'
 
+@app.route('/send', methods=['POST'])
+def send():
+    print("received file")
+    data = request.data
+    f = open('test.wav', 'wb')
+    f.write(data)
+    f.close()
+    return "okokokok"
+
 @app.route('/recording', methods=['POST'])
 def recording():
     data = request.data
@@ -136,4 +145,4 @@ def recording():
 
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', debug=True, threaded=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000, ssl_context='adhoc')

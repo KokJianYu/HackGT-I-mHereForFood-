@@ -17,10 +17,11 @@
         required
       />
       <label for="record">Record something for your reminder:</label>
-      <button id="recordButton">record</button>
+      <button id="start-btn">record</button>
+      <button id="stop-btn">stop</button>
     </div>
   </body>
-  <script src="js/recorder.js"></script>
+  <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
     // Expose globally your audio_context, the recorder instance and audio_stream
     var audio_context;
@@ -59,6 +60,9 @@
      * It only stops when the method stopRecording is triggered.
      */
     function startRecording() {
+      audio_context.resume().then(() => {
+        console.log("Playback resumed successfully");
+      });
       // Access the Microphone using the navigator.getUserMedia method to obtain a stream
       navigator.getUserMedia(
         { audio: true },
@@ -131,6 +135,14 @@
       // Prepare and check if requirements are filled
       Initialize();
 
+      // Handle on start recording button
+      document.getElementById("start-btn").addEventListener(
+        "click",
+        function() {
+          startRecording();
+        },
+        false
+      );
 
       // Handle on stop recording button
       document.getElementById("stop-btn").addEventListener(
@@ -146,6 +158,9 @@
             // Use the AudioBLOB for whatever you need, to download
             // directly in the browser, to upload to the server, you name it !
 
+            var oReq = new XMLHttpRequest();
+            oReq.open("POST", "/send", true);
+            oReq.send(AudioBLOB);
             // In this case we are going to add an Audio item to the list so you
             // can play every stored Audio
             var url = URL.createObjectURL(AudioBLOB);
@@ -164,7 +179,7 @@
             hf.innerHTML = hf.download;
             li.appendChild(au);
             li.appendChild(hf);
-            recordingslist.appendChild(li);
+            // recordingslist.appendChild(li);
           }, _AudioFormat);
         },
         false
@@ -182,47 +197,6 @@
         "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://85.186.254.205:50390//;stream/1</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>25</volume></play_info>";
       xhr.send(xml);
     }
-    var isRecording = false;
-    var recordButton, stopButton, recorder;
-    recordButton = document.getElementById("recordButton");
-    // get audio stream from user's mic
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: true
-      })
-      .then(function(stream) {
-        recordButton.addEventListener("click", toggleRecording);
-        recorder = new MediaRecorder(stream);
-        // listen to dataavailable, which gets triggered whenever we have
-        // an audio blob available
-        recorder.addEventListener("dataavailable", onRecordingReady);
-      });
-    function toggleRecording() {
-      if (isRecording) {
-        isRecording = false;
-        recordButton.innerHTML = "record";
-        console.log("Stopping");
-        recorder.stop();
-        fetch("/stop");
-      } else {
-        isRecording = true;
-        recordButton.innerHTML = "stop";
-        console.log("Starting recording");
-        recorder.start();
-        fetch("/start");
-      }
-    }
-    function onRecordingReady(e) {
-      let audioChunks = [];
-      audioChunks.push(e.data);
-      let blob = new Blob(audioChunks, { type: "audio/mp3" });
-      // sendData(blob);
-    }
-    function sendData(blob) {
-      var xhr = new XMLHttpRequest();
-      xhr.open("POST", "/recording", true);
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
-      xhr.send(blob);
-    }
+
   </script>
 </html>
