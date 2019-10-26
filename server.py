@@ -22,7 +22,7 @@ class AsyncGitTask(threading.Thread):
                           rate=RATE, input=True,
                           frames_per_buffer=CHUNK)
       data = wav_header + stream.read(CHUNK)
-      f = open('output', 'ab')
+      f = open('output.wav', 'ab')
       while is_recording:
           f.write(data)
 
@@ -86,8 +86,8 @@ def index():
 
 @app.route('/get_recording')
 def get_recording():
-    def getshit()
-      f = open('output', 'rb')
+    def getshit():
+      f = open('output.wav', 'rb')
       byte = f.read(1000)
       while byte != "":
           # Do stuff with byte.
@@ -111,6 +111,11 @@ def stop():
     print("stopping")
     global is_recording
     is_recording = False
+    import soundfile as sf
+
+    data, samplerate = sf.read('output.wav')
+    sf.write('new_output.ogg', data, samplerate)
+
     return 'stopped'
 
 @app.route('/recording', methods=['POST'])
