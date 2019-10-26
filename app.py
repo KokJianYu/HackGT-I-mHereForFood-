@@ -80,17 +80,24 @@ def audio():
         stream = audio1.open(format=FORMAT, channels=CHANNELS,
                             rate=RATE, input=True,
                             frames_per_buffer=CHUNK)
+        os = audio1.open(format=FORMAT, channels=CHANNELS,
+                            rate=RATE, output=True,
+                            frames_per_buffer=CHUNK)
         data = wav_header + stream.read(CHUNK)
         while True:
+            # os.write(data)
             yield (data)
             data = stream.read(CHUNK)
+
+    render_template('index.html')
+    # return sound()
 
     return Response(sound())
     # return render_template('audio.html')
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
 
 
 if __name__ == "__main__":
