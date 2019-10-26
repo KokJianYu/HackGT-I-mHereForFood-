@@ -85,17 +85,9 @@ def audio():
 def index():
     return render_template('index.html')
 
-@app.route('/get_recording.ogg')
+@app.route('/testtest.wav')
 def get_recording():
-    return flask.send_file("./new_output.ogg")
-    # def getshit():
-    #   f = open('output.wav', 'rb')
-    #   byte = f.read(1000)
-    #   while byte != "":
-    #       # Do stuff with byte.
-    #       yield byte
-    #       byte = f.read(1000)
-    # return Response(getshit())
+    return flask.send_file("./test.wav")
 
 @app.route('/ui')
 def ui():
@@ -119,6 +111,27 @@ def stop():
     sf.write('new_output.ogg', data, samplerate)
 
     return 'stopped'
+
+@app.route('/send', methods=['POST'])
+def send():
+    print("received file")
+    data = request.data
+    f = open('test.wav', 'wb')
+    f.write(data)
+    f.close()
+    return "okokokok"
+
+@app.route('/send_text', methods=['POST'])
+def send_text():
+    print("received text")
+    data = request.data
+    print(data)
+
+
+    # f = open('test.wav', 'wb')
+    # f.write(data)
+    # f.close()
+    return "okokokok"
 
 @app.route('/recording', methods=['POST'])
 def recording():
