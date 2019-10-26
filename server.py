@@ -116,7 +116,7 @@ def stop():
     import soundfile as sf
 
     data, samplerate = sf.read('output.wav')
-    sf.write('new_output.flac', data, samplerate)
+    sf.write('new_output.ogg', data, samplerate)
 
     return 'stopped'
 
