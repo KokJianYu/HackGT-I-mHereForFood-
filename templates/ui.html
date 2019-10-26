@@ -10,19 +10,37 @@
       <label for="remind">Choose a time for your reminder:</label>
       <input
         type="time"
-        id="remind"
+        id="remind-time"
         name="remind"
         min="00:00"
         max="23:59"
         required
       />
+
+      <br>
       <label for="record">Record something for your reminder:</label>
       <button id="start-btn">record</button>
       <button id="stop-btn">stop</button>
+
+      <br>
+      <label for="text-reminder">or write something!</label>
+      <input id="remind-text"/>
+      <button id="send-reminder-text" onclick="sendReminderText()">send</button>
+
     </div>
   </body>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
+
+    function sendReminderText() {
+      const text = document.getElementById("remind-text").value;
+      console.log(text)
+
+      var oReq = new XMLHttpRequest();
+      oReq.open("POST", "/send", true);
+      oReq.send(text);
+    }
+
     // Expose globally your audio_context, the recorder instance and audio_stream
     var audio_context;
     var recorder;
