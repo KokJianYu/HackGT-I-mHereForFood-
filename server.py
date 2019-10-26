@@ -119,13 +119,14 @@ def send():
 @app.route('/send_text', methods=['POST'])
 def send_text():
     print("received text")
-    text_to_say = request.data.decode("utf-8") 
-    print(text_to_say)
+    mytext = request.data.decode("utf-8") 
+    print(mytext)
 
+    from gtts import gTTS  
 
-    # f = open('test.wav', 'wb')
-    # f.write(data)
-    # f.close()
+    myobj = gTTS(text=mytext, lang='en', slow=False)
+    myobj.save("helloworld.mp3")
+
     return "okokokok"
 
 @app.route('/recording', methods=['POST'])
