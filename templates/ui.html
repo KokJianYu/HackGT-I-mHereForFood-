@@ -35,6 +35,7 @@
       <ul id="recordings"></ul>
     </div>
   </body>
+  <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"> </script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
     // Set date picker default as today, and time as 10mins from now.
@@ -245,11 +246,63 @@
         false
       );
     };
-  </script>
 
-  <script>
+    var live_audio_stream, context;
+
     function goLive() {
-      console.log("Going live...");
+      console.log("going live...");
+
+
+      // navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      // .then(stream => {
+      //   context = new AudioContext();
+      //   live_audio_stream = context.createMediaStreamSource(stream);
+      //   const processor = context.createScriptProcessor(1024, 1, 1);
+
+      //   live_audio_stream.connect(processor);
+      //   processor.connect(context.destination);
+
+      //   i=0
+      //   processor.onaudioprocess = function(e) {
+      //     // Do something with the data, e.g. convert it to WAV
+      //     // console.log(e);
+      //     console.log(e.inputBuffer);
+      //     // var wav = createWavFromBuffer(convertBlock(e.inputBuffer), 44100); 
+      //     console.log(i)
+      //     i++
+      //     // console.log(wav)
+      //     var xhr = new XMLHttpRequest()
+      //     xhr.open("POST", "/live", true)
+      //     xhr.send(e.inputBuffer)
+      //   };
+      // });
+
+      fetch("/goLive")
+
+      var mediaConstraints = {
+        audio: true,
+        video: false
+      };
+      
+      function onMediaError(e) {
+        console.error('media error', e);
+      }
+
+      function onMediaSuccess(stream) {
+          var mediaRecorder = new MediaStreamRecorder(stream);
+          mediaRecorder.mimeType = 'audio/wav';
+          mediaRecorder.bufferSize = 2048;
+          mediaRecorder.recorderType = StereoAudioRecorder;
+          mediaRecorder.ondataavailable = function (blob) {
+              console.log(blob)
+              var xhr = new XMLHttpRequest()
+              xhr.open("POST", "/live", true)
+              xhr.send(blob)
+          };
+          mediaRecorder.start(200);
+      }
+      
+      navigator.getUserMedia(mediaConstraints, onMediaSuccess, onMediaError);
     }
   </script>
 </html>
