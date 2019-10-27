@@ -65,7 +65,7 @@ def milliseconds_to_readable_date(millis):
 def date_string_to_milliseconds(date_string):
     return int(datetime.datetime.strptime(date_string, "%Y-%m-%d %X").timestamp()*1000)
 
-def schedule_reminder(filename, extension):
+def schedule_reminder(filename, extension, volume):
     filename_with_extension = filename + extension
     reminder_time_millis = date_string_to_milliseconds(filename)
 
@@ -77,7 +77,8 @@ def schedule_reminder(filename, extension):
         return
 
       import requests
-      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://" + IP + ":5000/get_reminder/" + filename_with_extension.replace(" ", "%20") + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
+      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://" + IP + ":5000/get_reminder/" + filename_with_extension.replace(" ", "%20") + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>" + str(volume) + "</volume></play_info>"
+      print(xml)
       headers = {'Content-Type': 'application/xml'} # set what your server accepts
       requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 
@@ -245,6 +246,7 @@ Route to send recording from client
 def send_recording():
     print("Received recording from client.")
     time = request.headers["time"]
+    volume = request.headers["volume"]
     data = request.data
     filename = str(milliseconds_to_readable_date(time))
 
@@ -252,7 +254,7 @@ def send_recording():
     f.write(data)
     f.close()
 
-    schedule_reminder(filename, ".wav")
+    schedule_reminder(filename, ".wav", volume)
 
     return "Recording received, reminder scheduled."
 
@@ -264,6 +266,7 @@ def send_text():
     print("Received text from client.")
     mytext = request.form.get('text')
     mytime = request.form.get('time')
+    myvolume = request.form.get('volume')
 
     from gtts import gTTS  
     import time
@@ -272,7 +275,7 @@ def send_text():
     filename = str(milliseconds_to_readable_date(mytime))
     myobj.save("reminders/" + filename + ".mp3")
 
-    schedule_reminder(filename, ".mp3")
+    schedule_reminder(filename, ".mp3", myvolume)
 
     return "Text received, reminder scheduled."
 
