@@ -2,8 +2,12 @@ from flask import Flask, Response,render_template, request
 import flask
 import pyaudio
 import wave
+import time
 
 import threading  
+
+queue = []
+
 class AsyncGitTask(threading.Thread):
   # def __init__(self, task_id=1, params=1):
   #     self.task_id = task_id
@@ -71,15 +75,49 @@ def audio():
         channels = 2
         wav_header = genHeader(sampleRate, bitsPerSample, channels)
 
-        stream = audio1.open(format=FORMAT, channels=CHANNELS,
-                            rate=RATE, input=True,
-                            frames_per_buffer=CHUNK)
-        data = wav_header + stream.read(CHUNK)
+        # stream = audio1.open(format=FORMAT, channels=CHANNELS,
+        #                     rate=RATE, input=True,
+        #                     frames_per_buffer=CHUNK)
+        # data = wav_header + stream.read(CHUNK)
+        # for i in range(10):
+        #     while len(queue) == 0:
+        #         pass
+        #     queue.pop(0)
+
+        while len(queue) == 0:
+            pass
+
+        data = wav_header + queue.pop(0)
+        
         while True:
+            if len(queue) == 0:
+                continue
             yield (data)
-            data = stream.read(CHUNK)
+            data = queue.pop(0)
 
     return Response(sound())
+
+@app.route('/goLive')
+def goLive():
+    import requests
+
+    # time.sleep(1)
+    xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.15:5000/audio</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>35</volume></play_info>"
+    headers = {'Content-Type': 'application/xml'} # set what your server accepts
+    requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
+
+@app.route('/live', methods=['POST'])
+def live():
+    print("received audio")
+    data = request.data
+    f = open('test.wav', 'wb')
+    f.write(data)
+    f.close()
+    wf = wave.open('test.wav', 'rb')
+    chunk = wf.readframes(wf.getnframes())
+    queue.append(chunk)
+    wf.close()
+    return "ok"
 
 @app.route('/')
 def index():
@@ -91,10 +129,10 @@ def get_recording():
 
 @app.route('/ui')
 def ui():
-    if request.url.startswith('http://'):
-        url = request.url.replace('http://', 'https://', 1).replace("5000", "5001", 1)
-        code = 301
-        return flask.redirect(url, code=code)
+    # if request.url.startswith('http://'):
+    #     url = request.url.replace('http://', 'https://', 1).replace("5000", "5001", 1)
+    #     code = 301
+    #     return flask.redirect(url, code=code)
     return render_template('ui.html')
 
 @app.route('/start')
@@ -163,7 +201,7 @@ def http_app():
     app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
 
 if __name__ == "__main__":
-    from multiprocessing import Process
+    # from multiprocessing import Process
 
-    Process(target=http_app, daemon=True).start()
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context="adhoc")
+    # Process(target=http_app, daemon=True).start()
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
