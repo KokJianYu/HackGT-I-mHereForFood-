@@ -108,15 +108,16 @@ def goLive():
 
 @app.route('/live', methods=['POST'])
 def live():
-    print("received audio")
+    # print("received audio")
     data = request.data
+    # print(data)
     f = open('test.wav', 'wb')
     f.write(data)
     f.close()
     wf = wave.open('test.wav', 'rb')
     chunk = wf.readframes(wf.getnframes())
-    queue.append(chunk)
     wf.close()
+    queue.append(data)
     return "ok"
 
 @app.route('/')
