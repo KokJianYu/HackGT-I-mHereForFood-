@@ -291,7 +291,7 @@
       //   };
       // });
 
-      fetch("/goLive")
+      fetch("http://localhost:5000/goLive")
 
       var mediaConstraints = {
         audio: true,
@@ -308,9 +308,9 @@
           mediaRecorder.bufferSize = 2048;
           mediaRecorder.recorderType = StereoAudioRecorder;
           mediaRecorder.ondataavailable = function (blob) {
-              console.log(blob)
+              console.log(blob+"Fuck you")
               var xhr = new XMLHttpRequest()
-              xhr.open("POST", "/live", true)
+              xhr.open("POST", "http://localhost:5000/live1", true)
               xhr.send(blob)
           };
           mediaRecorder.start(200);

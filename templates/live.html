@@ -264,7 +264,7 @@
       //   };
       // });
 
-      fetch("/goLive")
+      fetch("http://localhost:5000/goLive")
 
       var mediaConstraints = {
         audio: true,
@@ -283,7 +283,9 @@
           mediaRecorder.ondataavailable = function (blob) {
               console.log(blob)
               var xhr = new XMLHttpRequest()
-              xhr.open("POST", "/live", true)
+              xhr.open("POST", "http://localhost:5000/live", true)
+              xhr.setRequestHeader(
+                'Access-Control-Allow-Origin', '*');
               xhr.send(blob)
           };
           mediaRecorder.start(200);
