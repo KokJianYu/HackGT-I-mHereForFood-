@@ -38,6 +38,9 @@ class AsyncGitTask(threading.Thread):
 
       f.close()
 
+import socket
+IP = socket.gethostbyname(socket.gethostname())
+
 
 app = Flask(__name__)
 CORS(app)
@@ -71,7 +74,7 @@ def schedule_reminder(filename, extension):
         return
 
       import requests
-      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.85:5000/get_reminder/" + filename_with_extension.replace(" ", "%20") + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
+      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://" + IP + ":5000/get_reminder/" + filename_with_extension.replace(" ", "%20") + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
       headers = {'Content-Type': 'application/xml'} # set what your server accepts
       requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 
@@ -141,7 +144,7 @@ def goLive():
     import requests
 
     # time.sleep(1)
-    xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.167:5000/audio</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>35</volume></play_info>"
+    xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://" + IP + ":5000/audio</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>35</volume></play_info>"
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
     requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 

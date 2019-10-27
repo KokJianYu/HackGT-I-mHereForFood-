@@ -34,246 +34,19 @@
   <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"></script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
-    // Set date picker default as today, and time as 10mins from now.
-    var current_time =
-      Math.floor((new Date().getTime() - 4 * 60 * 60 * 1000) / 1000) * 1000 +
-      10 * 60 * 1000;
-    document.getElementById("remind-time").valueAsDate = new Date(current_time);
-    document.getElementById("remind_date").valueAsDate = new Date();
-
-    updateListOfRecordings();
-
-    function updateListOfRecordings() {
-      // Get all the current recordings and display them
-      fetch("/get_all_reminders")
-        .then(res => res.json())
-        .then(json => {
-          const recordings = json.recordings.sort();
-          const ul = document.getElementById("recordings");
-          ul.innerHTML = ""; // Clear all the child
-          recordings.forEach(r => {
-            var li = document.createElement("li");
-            li.innerHTML = r;
-            var deleteButton = document.createElement("button");
-            deleteButton.innerHTML = "delete";
-            deleteButton.onclick = function() {
-              console.log("Deleting: ", r);
-              var oReq = new XMLHttpRequest();
-              oReq.open("POST", "/delete_reminder/" + r, true);
-              oReq.send();
-              li.remove();
-              deleteButton.remove();
-            };
-            li.appendChild(deleteButton);
-            ul.appendChild(li);
-          });
-        });
-    }
-
-    function sendReminderText() {
-      const text = document.getElementById("remind-text").value;
-      console.log(text);
-      const date = document.getElementById("remind_date").value;
-      console.log(date);
-      const time = document.getElementById("remind-time").value;
-      console.log(time);
-
-      const millis = new Date(`${date} ${time}`).getTime();
-      console.log(millis);
-
-      var oReq = new XMLHttpRequest();
-      oReq.open("POST", "/send_text", true);
-      oReq.setRequestHeader(
-        "Content-type",
-        "application/x-www-form-urlencoded"
-      );
-      // oReq.send([text, time]);
-      oReq.send(`text=${text}&time=${millis}`);
-      setTimeout(updateListOfRecordings, 2000);
-    }
 
     // Expose globally your audio_context, the recorder instance and audio_stream
     var audio_context;
     var recorder;
     var audio_stream;
-    var ip;
-
-    /**
-     * Patch the APIs for every browser that supports them and check
-     * if getUserMedia is supported on the browser.
-     *
-     */
-    function Initialize() {
-      try {
-        // Monkeypatch for AudioContext, getUserMedia and URL
-        window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        navigator.getUserMedia =
-          navigator.getUserMedia || navigator.webkitGetUserMedia;
-        window.URL = window.URL || window.webkitURL;
-
-        // Store the instance of AudioContext globally
-        audio_context = new AudioContext();
-        console.log("Audio context is ready !");
-        console.log(
-          "navigator.getUserMedia " +
-            (navigator.getUserMedia ? "available." : "not present!")
-        );
-      } catch (e) {
-        alert("No web audio support in this browser!");
-      }
-    }
-
-    /**
-     * Starts the recording process by requesting the access to the microphone.
-     * Then, if granted proceed to initialize the library and store the stream.
-     *
-     * It only stops when the method stopRecording is triggered.
-     */
-    function startRecording() {
-      audio_context.resume().then(() => {
-        console.log("Playback resumed successfully");
-      });
-      // Access the Microphone using the navigator.getUserMedia method to obtain a stream
-      navigator.getUserMedia(
-        { audio: true },
-        function(stream) {
-          // Expose the stream to be accessible globally
-          audio_stream = stream;
-          // Create the MediaStreamSource for the Recorder library
-          var input = audio_context.createMediaStreamSource(stream);
-          console.log("Media stream succesfully created");
-
-          // Initialize the Recorder Library
-          recorder = new Recorder(input);
-          console.log("Recorder initialised");
-
-          // Start recording !
-          recorder && recorder.record();
-          console.log("Recording...");
-
-          // Disable Record button and enable stop button !
-          document.getElementById("start-btn").disabled = true;
-          document.getElementById("stop-btn").disabled = false;
-        },
-        function(e) {
-          console.error("No live audio input: " + e);
-        }
-      );
-    }
-
-    /**
-     * Stops the recording process. The method expects a callback as first
-     * argument (function) executed once the AudioBlob is generated and it
-     * receives the same Blob as first argument. The second argument is
-     * optional and specifies the format to export the blob either wav or mp3
-     */
-    function stopRecording(callback, AudioFormat) {
-      // Stop the recorder instance
-      recorder && recorder.stop();
-      console.log("Stopped recording.");
-
-      // Stop the getUserMedia Audio Stream !
-      audio_stream.getAudioTracks()[0].stop();
-
-      // Disable Stop button and enable Record button !
-      document.getElementById("start-btn").disabled = false;
-      document.getElementById("stop-btn").disabled = true;
-
-      // Use the Recorder Library to export the recorder Audio as a .wav file
-      // The callback providen in the stop recording method receives the blob
-      if (typeof callback == "function") {
-        /**
-         * Export the AudioBLOB using the exportWAV method.
-         * Note that this method exports too with mp3 if
-         * you provide the second argument of the function
-         */
-        recorder &&
-          recorder.exportWAV(function(blob) {
-            callback(blob);
-
-            // create WAV download link using audio data blob
-            // createDownloadLink();
-
-            // Clear the Recorder to start again !
-            recorder.clear();
-          }, AudioFormat || "audio/wav");
-      }
-    }
-
-    // Initialize everything once the window loads
-    window.onload = function() {
-      // Prepare and check if requirements are filled
-      Initialize();
-
-      // Handle on start recording button
-      document.getElementById("start-btn").addEventListener(
-        "click",
-        function() {
-          startRecording();
-        },
-        false
-      );
-
-      // Handle on stop recording button
-      document.getElementById("stop-btn").addEventListener(
-        "click",
-        function() {
-          // Use wav format
-          var _AudioFormat = "audio/wav";
-          // You can use mp3 to using the correct mimetype
-          //var AudioFormat = "audio/mpeg";
-
-          stopRecording(function(AudioBLOB) {
-            // Note:
-            // Use the AudioBLOB for whatever you need, to download
-            // directly in the browser, to upload to the server, you name it !
-            const date = document.getElementById("remind_date").value;
-            console.log(date);
-            const time = document.getElementById("remind-time").value;
-            console.log(time);
-            const millis = new Date(`${date} ${time}`).getTime();
-
-            var oReq = new XMLHttpRequest();
-            oReq.open("POST", "/send_recording", true);
-            oReq.setRequestHeader("time", millis);
-            oReq.send(AudioBLOB);
-            setTimeout(updateListOfRecordings, 2000);
-          }, _AudioFormat);
-        },
-        false
-      );
-    };
+    var ip = window.location.href.split(":")[1].split("//")[1];
 
     var live_audio_stream, context;
 
     function goLive() {
       console.log("going live...");
 
-      // navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-      // .then(stream => {
-      //   context = new AudioContext();
-      //   live_audio_stream = context.createMediaStreamSource(stream);
-      //   const processor = context.createScriptProcessor(1024, 1, 1);
-
-      //   live_audio_stream.connect(processor);
-      //   processor.connect(context.destination);
-
-      //   i=0
-      //   processor.onaudioprocess = function(e) {
-      //     // Do something with the data, e.g. convert it to WAV
-      //     // console.log(e);
-      //     console.log(e.inputBuffer);
-      //     // var wav = createWavFromBuffer(convertBlock(e.inputBuffer), 44100);
-      //     console.log(i)
-      //     i++
-      //     // console.log(wav)
-      //     var xhr = new XMLHttpRequest()
-      //     xhr.open("POST", "/live", true)
-      //     xhr.send(e.inputBuffer)
-      //   };
-      // });
-
-      fetch("http://localhost:5000/goLive")
+      fetch("http://" + ip + ":5000/goLive");
 
       var mediaConstraints = {
         audio: true,
@@ -285,87 +58,21 @@
       }
 
       function onMediaSuccess(stream) {
-          var mediaRecorder = new MediaStreamRecorder(stream);
-          mediaRecorder.mimeType = 'audio/wav';
-          mediaRecorder.bufferSize = 2048;
-          mediaRecorder.recorderType = StereoAudioRecorder;
-          mediaRecorder.ondataavailable = function (blob) {
-              console.log(blob)
-              var xhr = new XMLHttpRequest()
-              xhr.open("POST", "http://localhost:5000/live", true)
-              xhr.setRequestHeader(
-                'Access-Control-Allow-Origin', '*');
-              xhr.send(blob)
-          };
-          mediaRecorder.start(200);
+        var mediaRecorder = new MediaStreamRecorder(stream);
+        mediaRecorder.mimeType = "audio/wav";
+        mediaRecorder.bufferSize = 2048;
+        mediaRecorder.recorderType = StereoAudioRecorder;
+        mediaRecorder.ondataavailable = function(blob) {
+          console.log(blob);
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "http://" + ip + ":5000/live", true);
+          xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+          xhr.send(blob);
+        };
+        mediaRecorder.start(200);
       }
 
       navigator.getUserMedia(mediaConstraints, onMediaSuccess, onMediaError);
     }
-  </script>
-  <script>
-    /**
-     * Get the user IP throught the webkitRTCPeerConnection
-     * @param onNewIP {Function} listener function to expose the IP locally
-     * @return undefined
-     */
-    function getUserIP(onNewIP) {
-      //  onNewIp - your listener function for new IPs
-      //compatibility for firefox and chrome
-      var myPeerConnection =
-        window.RTCPeerConnection ||
-        window.mozRTCPeerConnection ||
-        window.webkitRTCPeerConnection;
-      var pc = new myPeerConnection({
-          iceServers: []
-        }),
-        noop = function() {},
-        localIPs = {},
-        ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/g,
-        key;
-
-      function iterateIP(ip) {
-        if (!localIPs[ip]) onNewIP(ip);
-        localIPs[ip] = true;
-      }
-
-      //create a bogus data channel
-      pc.createDataChannel("");
-
-      // create offer and set local description
-      pc.createOffer()
-        .then(function(sdp) {
-          sdp.sdp.split("\n").forEach(function(line) {
-            if (line.indexOf("candidate") < 0) return;
-            line.match(ipRegex).forEach(iterateIP);
-          });
-
-          pc.setLocalDescription(sdp, noop, noop);
-        })
-        .catch(function(reason) {
-          // An error occurred, so handle the failure to connect
-        });
-
-      //listen for candidate events
-      pc.onicecandidate = function(ice) {
-        if (
-          !ice ||
-          !ice.candidate ||
-          !ice.candidate.candidate ||
-          !ice.candidate.candidate.match(ipRegex)
-        )
-          return;
-        ice.candidate.candidate.match(ipRegex).forEach(iterateIP);
-      };
-    }
-
-    // Usage
-
-    getUserIP(function(ip_1) {
-      if (ip_1.length < 20) {
-        console.log(ip_1)
-        ip = ip_1
-      }
-    });
   </script>
 </html>
