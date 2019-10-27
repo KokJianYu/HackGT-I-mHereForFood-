@@ -105,7 +105,13 @@ body{
 }
 
 #livebutton{
-    background-color:black;
+	background-color:black;
+	border-width: 10px;  
+}
+
+#livebutton:focus {     
+	border-color:red;  
+	border-width: 10px;  
 }
 
 #recordings{
