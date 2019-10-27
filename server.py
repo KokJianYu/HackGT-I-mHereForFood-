@@ -31,6 +31,10 @@ def schedule_reminder(filename, extension):
     import sched, time
 
     def play_reminder():
+      import os
+      if not os.path.exists(filename_with_extension):
+        return
+
       import requests
       xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.85:5000/get_reminder/" + filename_with_extension + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
       headers = {'Content-Type': 'application/xml'} # set what your server accepts
@@ -104,17 +108,24 @@ Route to get list of reminder file names
 """
 @app.route('/get_all_reminders')
 def get_all_reminders():
-    import os
+    import os, time
     all_recordings = []
     # List all files in a directory using os.listdir
     basepath = 'reminders/'
     for entry in os.listdir(basepath):
         if os.path.isfile(os.path.join(basepath, entry)):
-            all_recordings.append(entry)
+            date_string = entry[0:-4]
+            print(date_string)
+            millis = date_string_to_milliseconds(date_string)
+            millis_now = time.time()*1000
+            if millis < millis_now:
+                # pending reminder, add to all recordings
+                all_recordings.append(entry)
+            else:
+                # already expired reminder, just remove
+                os.remove("reminders/" + entry)
     myDict = {"recordings": all_recordings}
-    print(myDict)
     return myDict
-
 
 """
 Route to get mp3 or wav file of your reminder, given filename (either text-to-speech or recorded)
@@ -122,6 +133,15 @@ Route to get mp3 or wav file of your reminder, given filename (either text-to-sp
 @app.route('/get_reminder/<name>')
 def get_reminder(name):
     return flask.send_file("reminders/" + name)
+
+"""
+Route to delete reminder
+"""
+@app.route('/delete_reminder/<name>', methods=['POST'])
+def delete_reminder(name):
+    import os
+    os.remove("reminders/" + name)
+    return "File Removed!"
 
 """
 Route to send recording from client
