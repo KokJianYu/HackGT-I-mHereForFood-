@@ -172,6 +172,17 @@ def ui():
     return render_template('ui.html')
 
 """
+Route to render the live UI of the app
+"""
+@app.route('/live_ui')
+def live_ui():
+    # if request.url.startswith('http://'):
+    #     url = request.url.replace('http://', 'https://', 1).replace("5000", "5001", 1)
+    #     code = 301
+    #     return flask.redirect(url, code=code)
+    return render_template('live.html')
+
+"""
 Route to get list of reminder file names
 """
 @app.route('/get_all_reminders')
@@ -255,5 +266,5 @@ def http_app():
 if __name__ == "__main__":
     # from multiprocessing import Process
 
-    Process(target=http_app,daemon=True).start()
+    # Process(target=http_app,daemon=True).start()
     app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))

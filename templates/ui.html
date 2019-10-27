@@ -1,14 +1,14 @@
 <html>
   <head>
     <title>Recorded Streaming</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.css')}}">
   </head>
   <body>
     <h2 id = "title"> <i>Bose Streaming App</i></h2>
     <nav id="navbar">
         <div class="containernav">
           <ul>
-            <li><a href="live.html">Live Streaming</a></li>
+            <li><a href="{{ url_for('live_ui') }}">Live Streaming</a></li>
             <li><a href="#">Recorded Streaming</a></li>
           </ul>
         </div>

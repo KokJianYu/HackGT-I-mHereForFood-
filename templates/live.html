@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>Live Streaming</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.css')}}">
   </head>
   <body>
     <h2 id = "title"> <i>Bose Streaming App</i></h2>
@@ -9,7 +9,7 @@
         <div class="containernav">
           <ul>
             <li><a href="#">Live Streaming</a></li>
-            <li><a href="ui.html">Recorded Streaming</a></li>
+            <li><a href="{{ url_for('ui') }}">Recorded Streaming</a></li>
           </ul>
         </div>
     </nav>
