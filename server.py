@@ -153,7 +153,22 @@ def goLive():
 
     response = flask.Response("ok")
     #headers = {'Content-Type': 'application/xml'} # set what your server accepts
-    response.headers["Referrer-Policy"] = "unsafe-url"
+    # response.headers["Referrer-Policy"] = "unsafe-url"
+    return response
+
+@app.route('/stopLive')
+def stopLive():
+    import requests
+
+    # time.sleep(1)
+    xml = "<key state=\"press\" sender=\"Gabbo\">NEXT_TRACK</key>"
+    headers = {'Content-Type': 'application/xml'} # set what your server accepts
+    requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
+
+    response = flask.Response("ok")
+    queue = manager.list()
+    #headers = {'Content-Type': 'application/xml'} # set what your server accepts
+    # response.headers["Referrer-Policy"] = "unsafe-url"
     return response
 
 @app.route('/live', methods=['POST'])
@@ -170,7 +185,7 @@ def live():
     queue.append(chunk)
     response = flask.Response("ok")
     #headers = {'Content-Type': 'application/xml'} # set what your server accepts
-    response.headers["Referrer-Policy"] = "unsafe-url"
+    # response.headers["Referrer-Policy"] = "unsafe-url"
     return response
 
 @app.route('/')
