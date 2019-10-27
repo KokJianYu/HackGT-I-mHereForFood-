@@ -25,7 +25,7 @@ pip install -r requirements.txt
 python server.py
 ```
 
-Navigate to `localhost:5000` on your web browser. You should be able to see the UI.
+Navigate to `<YOUR_IP>:5001` on your web browser. You should be able to see the UI.
 
 ## Features
 
