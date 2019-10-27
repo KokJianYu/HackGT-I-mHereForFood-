@@ -38,6 +38,7 @@ body{
 	padding:4px 13px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #263666;
+	margin: 5px;
 }
 .myButton:hover {
 	background:linear-gradient(to bottom, #415989 5%, #2e466e 100%);
@@ -48,12 +49,35 @@ body{
 	top:1px;
 }
 
+.myButtonRed {
+	background:linear-gradient(to bottom, #c62d1f 5%, #f24437 100%);
+	background-color:#c62d1f;
+	border-radius:18px;
+	border:1px solid #d02718;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	padding:4px 13px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #810e05;
+	margin: 5px;
+}
+.myButtonRed:hover {
+	background:linear-gradient(to bottom, #f24437 5%, #c62d1f 100%);
+	background-color:#f24437;
+}
+.myButtonRed:active {
+	position:relative;
+	top:1px;
+}
+
 #title{
     text-align: center;
-    padding-top:20px;
+    padding-top:25px;
     color: #FFFFFF;
     text-shadow: 0 -1px 4px #FFF, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #F00;
-	color: #FFFFFF;
 	font-size: 35px;
 }
 
@@ -82,4 +106,19 @@ body{
 
 #livebutton{
     background-color:black;
+}
+
+#recordings{
+    list-style:none;
+    padding: 5px 10px;
+	border: 3px solid #eee;
+	text-align: center;
+    margin:20px;
+}
+
+#remindersHeader{
+	text-align: center;
+	color: #FFFFFF;
+	font-size: 25px;
+	text-shadow: -1px -1px 1px rgba(255,255,255,.1), 1px 1px 1px rgba(0,0,0,.5);
 }
