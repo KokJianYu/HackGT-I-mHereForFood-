@@ -13,37 +13,10 @@ manager = Manager()
 queue = manager.list()
 # queue = []
 
-
-class AsyncGitTask(threading.Thread):
-  # def __init__(self, task_id=1, params=1):
-  #     self.task_id = task_id
-  #     self.params = params
-  def run(self):
-      ## Do processing
-      ## store the result in table for id = self.task_id
-      global is_recording
-      is_recording = True
-      CHUNK = 1024
-      sampleRate = 44100
-      bitsPerSample = 16
-      channels = 2
-      wav_header = genHeader(sampleRate, bitsPerSample, channels)
-
-      stream = audio1.open(format=FORMAT, channels=CHANNELS,
-                          rate=RATE, input=True,
-                          frames_per_buffer=CHUNK)
-      data = wav_header + stream.read(CHUNK)
-      f = open('output.wav', 'ab')
-      while is_recording:
-          f.write(data)
-
-          data = stream.read(CHUNK)
-
-      f.close()
+currVolume = 0
 
 import socket
 IP = socket.gethostbyname(socket.gethostname())
-
 
 app = Flask(__name__)
 CORS(app)
@@ -90,6 +63,12 @@ def schedule_reminder(filename, extension, volume):
     s.enterabs(float(reminder_time_millis)//1000, 0, play_reminder)
     # Block until the action has been run
     s.run()
+
+def get_current_vol():
+    import requests
+    global currVolume
+    response = requests.get('http://192.168.1.251:8090/volume').content.decode('utf-8')
+    currVolume = int(response.split("<actualvolume>")[1].split("</actualvolume>")[0])
 
 """
 Livestream
@@ -170,6 +149,28 @@ def stopLive():
     queue = manager.list()
     #headers = {'Content-Type': 'application/xml'} # set what your server accepts
     # response.headers["Referrer-Policy"] = "unsafe-url"
+    return response
+
+@app.route('/volumeUp')
+def volumeUp():
+    import requests
+    global currVolume
+    currVolume += 5
+    xml = "<volume>" + str(currVolume) + "</volume>"
+    headers = {'Content-Type': 'application/xml'} # set what your server accepts
+    requests.post('http://192.168.1.251:8090/volume', data=xml, headers=headers)
+    response = flask.Response("ok")
+    return response
+
+@app.route('/volumeDown')
+def volumeDown():
+    import requests
+    global currVolume
+    currVolume -= 5
+    xml = "<volume>" + str(currVolume) + "</volume>"
+    headers = {'Content-Type': 'application/xml'} # set what your server accepts
+    requests.post('http://192.168.1.251:8090/volume', data=xml, headers=headers)
+    response = flask.Response("ok")
     return response
 
 @app.route('/live', methods=['POST'])
@@ -301,4 +302,5 @@ def http_app():
 if __name__ == "__main__":
     from multiprocessing import Process
     Process(target=http_app,daemon=True).start()
+    get_current_vol()
     app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))

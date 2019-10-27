@@ -18,7 +18,8 @@
       </div>
     </nav>
 
-    <div class="containertext">
+    <div class="containertext" style="display: flex; justify-content: space-around;">
+      <div style="margin: 0 20%;">
       <br />
       <button id="livebutton">
         <img
@@ -28,12 +29,27 @@
         />
       </button>
       <p>Click the button above to begin streaming!</p>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: space-around; margin-right: 50px;">
+        <button id="volume-up" onclick="volumeUp()"><img src="https://upload.wikimedia.org/wikipedia/commons/1/10/TriangleArrow-Up.svg" height="70" width="70" /></button>
+        <button id="volume-down" onclick="volumeDown()"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/TriangleArrow-Down.svg" height="70" width="70" /></button>
+        <p>Volume</p>
+      </div>
     </div>
     <!-- Container End -->
   </body>
   <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"></script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
+
+    function volumeUp() {
+      fetch("/volumeUp");
+    }
+
+    function volumeDown() {
+      fetch("/volumeDown");
+    }
+
     var recording = false;
     var ip = window.location.href.split(":")[1].split("//")[1];
     var audio_context;
