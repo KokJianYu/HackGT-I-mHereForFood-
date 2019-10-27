@@ -151,7 +151,10 @@ def goLive():
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
     requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 
-    return "ok"
+    response = flask.Response("ok")
+    #headers = {'Content-Type': 'application/xml'} # set what your server accepts
+    response.headers["Referrer-Policy"] = "unsafe-url"
+    return response
 
 @app.route('/live', methods=['POST'])
 def live():
@@ -165,7 +168,10 @@ def live():
     chunk = wf.readframes(wf.getnframes())
     wf.close()
     queue.append(chunk)
-    return "ok"
+    response = flask.Response("ok")
+    #headers = {'Content-Type': 'application/xml'} # set what your server accepts
+    response.headers["Referrer-Policy"] = "unsafe-url"
+    return response
 
 @app.route('/')
 def index():
