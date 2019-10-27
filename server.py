@@ -1,5 +1,6 @@
 from flask import Flask, Response,render_template, request
 from flask_cors import CORS
+from multiprocessing import Manager
 import flask
 import pyaudio
 import wave
@@ -8,8 +9,10 @@ import time
 import threading  
 import datetime
 
+manager = Manager()
+queue = manager.list()
+# queue = []
 
-queue = []
 
 class AsyncGitTask(threading.Thread):
   # def __init__(self, task_id=1, params=1):
@@ -274,10 +277,10 @@ def send_text():
     return "Text received, reminder scheduled."
 
 def http_app():
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False, port=5000)
     #app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
 
 if __name__ == "__main__":
     from multiprocessing import Process
     Process(target=http_app,daemon=True).start()
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
+    app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
