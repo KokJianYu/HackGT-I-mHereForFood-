@@ -13,6 +13,7 @@ currVolume = 0
 
 import socket
 IP = socket.gethostbyname(socket.gethostname())
+SPEAKER_IP = 'http://192.168.1.251:8090'
 
 app = Flask(__name__)
 CORS(app)
@@ -49,7 +50,7 @@ def schedule_reminder(filename, extension, volume):
       xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://" + IP + ":5000/get_reminder/" + filename_with_extension.replace(" ", "%20") + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>" + str(volume) + "</volume></play_info>"
       print(xml)
       headers = {'Content-Type': 'application/xml'} # set what your server accepts
-      requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
+      requests.post(SPEAKER_IP + '/speaker', data=xml, headers=headers)
 
     print("Scheduling", filename_with_extension, "...")
 
@@ -63,7 +64,7 @@ def schedule_reminder(filename, extension, volume):
 def get_current_vol():
     import requests
     global currVolume
-    response = requests.get('http://192.168.1.251:8090/volume').content.decode('utf-8')
+    response = requests.get(SPEAKER_IP + '/volume').content.decode('utf-8')
     currVolume = int(response.split("<actualvolume>")[1].split("</actualvolume>")[0])
 
 """
@@ -125,7 +126,7 @@ def goLive():
     # time.sleep(1)
     xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://" + IP + ":5000/audio</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>35</volume></play_info>"
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
-    requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
+    requests.post(SPEAKER_IP + '/speaker', data=xml, headers=headers)
 
     response = flask.Response("ok")
     #headers = {'Content-Type': 'application/xml'} # set what your server accepts
@@ -139,7 +140,7 @@ def stopLive():
     # time.sleep(1)
     xml = "<key state=\"press\" sender=\"Gabbo\">NEXT_TRACK</key>"
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
-    requests.post('http://192.168.1.251:8090/key', data=xml, headers=headers)
+    requests.post(SPEAKER_IP + '/key', data=xml, headers=headers)
 
     response = flask.Response("ok")
     queue = manager.list()
@@ -154,7 +155,7 @@ def volumeUp():
     currVolume += 5
     xml = "<volume>" + str(currVolume) + "</volume>"
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
-    requests.post('http://192.168.1.251:8090/volume', data=xml, headers=headers)
+    requests.post(SPEAKER_IP + '/volume', data=xml, headers=headers)
     response = flask.Response("ok")
     return response
 
@@ -165,7 +166,7 @@ def volumeDown():
     currVolume -= 5
     xml = "<volume>" + str(currVolume) + "</volume>"
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
-    requests.post('http://192.168.1.251:8090/volume', data=xml, headers=headers)
+    requests.post(SPEAKER_IP + '/volume', data=xml, headers=headers)
     response = flask.Response("ok")
     return response
 
