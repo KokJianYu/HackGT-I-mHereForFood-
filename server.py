@@ -145,11 +145,9 @@ def goLive():
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
     requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 
-    response = flask.Response("ok")
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    return response
+    return "ok"
 
-@app.route('/live', methods=['POST']) 
+@app.route('/live', methods=['POST'])
 def live():
     # print("received audio")
     data = request.data
@@ -160,10 +158,8 @@ def live():
     wf = wave.open('test.wav', 'rb')
     chunk = wf.readframes(wf.getnframes())
     wf.close()
-    queue.append(data)
-    response = flask.Response("ok")
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    return response
+    queue.append(chunk)
+    return "ok"
 
 @app.route('/')
 def index():

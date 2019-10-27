@@ -36,7 +36,7 @@
         <br />
         <label for="record">Record something for your reminder</label>
         <button class="myButton" id="start-btn">Record</button>
-        <button class="myButton" id="stop-btn">Stop</button>
+        <button class="myButtonRed" id="stop-btn">Stop</button>
 
         <br />
         <label for="text-reminder">Write something!</label>
@@ -45,8 +45,8 @@
       </div>
     </div> <!-- Container End -->
 
-    <hr />
-      <ul id="recordings"></ul>
+    <p id = "remindersHeader">Pending Reminders</p>
+    <ul id="recordings"></ul>
       
   </body>
   <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"> </script>
@@ -62,6 +62,7 @@
     updateListOfRecordings();
 
     function updateListOfRecordings() {
+
       // Get all the current recordings and display them
       fetch("/get_all_reminders")
         .then(res => res.json())
@@ -73,7 +74,8 @@
             var li = document.createElement("li");
             li.innerHTML = r;
             var deleteButton = document.createElement("button");
-            deleteButton.innerHTML = "delete";
+            deleteButton.className = "myButtonRed";
+            deleteButton.innerHTML = "Delete";
             deleteButton.onclick = function() {
               console.log("Deleting: ", r);
               var oReq = new XMLHttpRequest();
