@@ -67,6 +67,7 @@
           var xhr = new XMLHttpRequest();
           xhr.open("POST", "http://" + ip + ":5000/live", true);
           xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+          xhr.setRequestHeader("Referrer-Policy", "unsafe-url");
           xhr.send(blob);
         };
         mediaRecorder.start(200);
