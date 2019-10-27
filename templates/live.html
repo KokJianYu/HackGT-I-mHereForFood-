@@ -273,7 +273,7 @@
       //   };
       // });
 
-      fetch("/goLive");
+      fetch("http://localhost:5000/goLive")
 
       var mediaConstraints = {
         audio: true,
@@ -285,17 +285,19 @@
       }
 
       function onMediaSuccess(stream) {
-        var mediaRecorder = new MediaStreamRecorder(stream);
-        mediaRecorder.mimeType = "audio/wav";
-        mediaRecorder.bufferSize = 2048;
-        mediaRecorder.recorderType = StereoAudioRecorder;
-        mediaRecorder.ondataavailable = function(blob) {
-          console.log(blob);
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", "/live", true);
-          xhr.send(blob);
-        };
-        mediaRecorder.start(200);
+          var mediaRecorder = new MediaStreamRecorder(stream);
+          mediaRecorder.mimeType = 'audio/wav';
+          mediaRecorder.bufferSize = 2048;
+          mediaRecorder.recorderType = StereoAudioRecorder;
+          mediaRecorder.ondataavailable = function (blob) {
+              console.log(blob)
+              var xhr = new XMLHttpRequest()
+              xhr.open("POST", "http://localhost:5000/live", true)
+              xhr.setRequestHeader(
+                'Access-Control-Allow-Origin', '*');
+              xhr.send(blob)
+          };
+          mediaRecorder.start(200);
       }
 
       navigator.getUserMedia(mediaConstraints, onMediaSuccess, onMediaError);

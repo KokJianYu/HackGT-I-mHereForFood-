@@ -1,4 +1,5 @@
 from flask import Flask, Response,render_template, request
+from flask_cors import CORS
 import flask
 import pyaudio
 import wave
@@ -6,6 +7,7 @@ import time
 
 import threading  
 import datetime
+
 
 queue = []
 
@@ -38,6 +40,7 @@ class AsyncGitTask(threading.Thread):
 
 
 app = Flask(__name__)
+CORS(app)
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 2
@@ -138,7 +141,7 @@ def goLive():
     import requests
 
     # time.sleep(1)
-    xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.15:5000/audio</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>35</volume></play_info>"
+    xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.167:5000/audio</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>35</volume></play_info>"
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
     requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 
@@ -263,11 +266,9 @@ def send_text():
 
 def http_app():
     app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
+    #app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
 
 if __name__ == "__main__":
     from multiprocessing import Process
-
-    # Process(target=http_app,daemon=True).start()
-    # app.run(host='0.0.0.0', debug=True, threaded=True, port=443, ssl_context=("adhoc"))
-
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
+    Process(target=http_app,daemon=True).start()
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
