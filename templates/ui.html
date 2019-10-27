@@ -1,39 +1,50 @@
 <html>
   <head>
-    <title>imhereforfood</title>
+    <title>Recorded Streaming</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
   </head>
   <body>
-    <h3>hello food</h3>
-    <button onclick="goLive()">live</button>
-    <button>reminder</button>
-    <div id="reminder">
-      <label for="remind_date">Choose a date for your reminder</label>
-      <input type="date" id="remind_date" />
-      <br />
+    <h2 id = "title"> <i>Bose Streaming App</i></h2>
+    <nav id="navbar">
+        <div class="containernav">
+          <ul>
+            <li><a href="live.html">Live Streaming</a></li>
+            <li><a href="#">Recorded Streaming</a></li>
+          </ul>
+        </div>
+    </nav>
 
-      <label for="remind">Choose a time for your reminder:</label>
-      <input
-        type="time"
-        id="remind-time"
-        name="remind"
-        min="00:00"
-        max="23:59"
-        required
-      />
+    <div class = "containertext">
+      <div id="reminder">
+        <label for="remind_date">Choose a date for your reminder</label>
+        <input
+          type="date"
+          id="remind_date"
+        />
+        <br>
 
-      <br />
-      <label for="record">Record something for your reminder:</label>
-      <button id="start-btn">record</button>
-      <button id="stop-btn">stop</button>
+        <label for="remind">Choose a time for your reminder</label>
+        <input
+          type="time"
+          id="remind-time"
+          name="remind"
+          min="00:00"
+          max="23:59"
+          required
+        />
 
-      <br />
-      <label for="text-reminder">or write something!</label>
-      <input id="remind-text" />
-      <button id="send-reminder-text" onclick="sendReminderText()">send</button>
+        <br />
+        <label for="record">Record something for your reminder</label>
+        <button class="myButton" id="start-btn">Record</button>
+        <button class="myButton" id="stop-btn">Stop</button>
 
-      <hr />
-      <ul id="recordings"></ul>
-    </div>
+        <br />
+        <label for="text-reminder">Write something!</label>
+        <input id="remind-text" />
+        <button class="myButton" id="send-reminder-text" onclick="sendReminderText()">Send</button>
+      </div>
+    </div> <!-- Container End -->
+
   </body>
   <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"> </script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
