@@ -20,7 +20,7 @@
 
     <div class="containertext">
       <br />
-      <button id="livebutton" onclick="goLive()">
+      <button id="livebutton">
         <img
           src="https://ak2.picdn.net/shutterstock/videos/5721572/thumb/9.jpg"
           height="120"
@@ -35,13 +35,68 @@
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
 
-    // Expose globally your audio_context, the recorder instance and audio_stream
-    var audio_context;
-    var recorder;
-    var audio_stream;
+    var recording = false;
     var ip = window.location.href.split(":")[1].split("//")[1];
+    var audio_context;
+    var mediaRecorder;
 
-    var live_audio_stream, context;
+    /**
+     * Patch the APIs for every browser that supports them and check
+     * if getUserMedia is supported on the browser.
+     *
+     */
+     function Initialize() {
+      try {
+        // Monkeypatch for AudioContext, getUserMedia and URL
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        navigator.getUserMedia =
+          navigator.getUserMedia || navigator.webkitGetUserMedia;
+        window.URL = window.URL || window.webkitURL;
+
+        // Store the instance of AudioContext globally
+        audio_context = new AudioContext();
+        console.log("Audio context is ready !");
+        console.log(
+          "navigator.getUserMedia " +
+            (navigator.getUserMedia ? "available." : "not present!")
+        );
+      } catch (e) {
+        alert("No web audio support in this browser!");
+      }
+    }
+
+    // Initialize everything once the window loads
+    window.onload = function() {
+      // Prepare and check if requirements are filled
+      Initialize();
+
+      // Handle on start recording button
+      document.getElementById("livebutton").addEventListener(
+        "click",
+        function() {
+          toggleButton();
+        },
+        false
+      );
+    }
+
+    function toggleButton() {
+      if (recording) {
+        recording = false;
+        stopRecording();
+      } else {
+        recording = true;
+        goLive();
+      }
+    }
+
+    function stopRecording() {
+      // Stop the recorder instance
+      fetch("/stopLive")
+      mediaRecorder.stop();
+      mediaRecorder.stream.stop();
+      console.log("Stopped recording.");
+    }
 
     function goLive() {
       console.log("going live...");
@@ -58,7 +113,8 @@
       }
 
       function onMediaSuccess(stream) {
-        var mediaRecorder = new MediaStreamRecorder(stream);
+        mediaRecorder = new MediaStreamRecorder(stream);
+        mediaRecorder.stream = stream;
         mediaRecorder.mimeType = "audio/wav";
         mediaRecorder.bufferSize = 2048;
         mediaRecorder.recorderType = StereoAudioRecorder;
@@ -66,7 +122,6 @@
           console.log(blob);
           var xhr = new XMLHttpRequest();
           xhr.open("POST", "https://" + ip + ":5001/live", true);
-          // xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
           xhr.send(blob);
         };
         mediaRecorder.start(200);
