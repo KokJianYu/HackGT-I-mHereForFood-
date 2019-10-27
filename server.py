@@ -9,10 +9,6 @@ import time
 import threading  
 import datetime
 
-manager = Manager()
-queue = manager.list()
-# queue = []
-
 currVolume = 0
 
 import socket
@@ -295,12 +291,17 @@ def send_text():
 
     return "Text received, reminder scheduled."
 
-def http_app():
+def http_app(q):
+    global queue
+    queue = q
     app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False, port=5000)
     #app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
 
 if __name__ == "__main__":
     from multiprocessing import Process
-    Process(target=http_app,daemon=True).start()
+    manager = Manager()
+    q = manager.list()
+    Process(target=http_app,daemon=True, args=(q,)).start()
+    queue = q
     get_current_vol()
     app.run(host='0.0.0.0', debug=True, threaded=True, use_reloader=False, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
