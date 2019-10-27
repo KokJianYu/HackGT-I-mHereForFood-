@@ -267,7 +267,7 @@ def http_app():
 if __name__ == "__main__":
     from multiprocessing import Process
 
-    Process(target=http_app,daemon=True).start()
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=443, ssl_context=("adhoc"))
+    # Process(target=http_app,daemon=True).start()
+    # app.run(host='0.0.0.0', debug=True, threaded=True, port=443, ssl_context=("adhoc"))
 
-    # app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)

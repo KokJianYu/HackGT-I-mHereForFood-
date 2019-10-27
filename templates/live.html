@@ -1,28 +1,37 @@
 <html>
   <head>
     <title>Live Streaming</title>
-    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.css')}}">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{url_for('static', filename='css/style.css')}}"
+    />
   </head>
   <body>
-    <h2 id = "title"> <i>Bose Streaming App</i></h2>
+    <h2 id="title"><i>Bose Streaming App</i></h2>
     <nav id="navbar">
-        <div class="containernav">
-          <ul>
-            <li><a href="#">Live Streaming</a></li>
-            <li><a href="{{ url_for('ui') }}">Recorded Streaming</a></li>
-          </ul>
-        </div>
+      <div class="containernav">
+        <ul>
+          <li><a href="#">Live Streaming</a></li>
+          <li><a href="{{ url_for('ui') }}">Recorded Streaming</a></li>
+        </ul>
+      </div>
     </nav>
 
-    <div class = "containertext">
-        <br>
-        <button id = "livebutton" onclick="goLive()">
-            <img src="https://ak2.picdn.net/shutterstock/videos/5721572/thumb/9.jpg" height="120" width="200">
-        </button>
-        <p>Click the button above to begin streaming!</p>
-    </div> <!-- Container End -->
+    <div class="containertext">
+      <br />
+      <button id="livebutton" onclick="goLive()">
+        <img
+          src="https://ak2.picdn.net/shutterstock/videos/5721572/thumb/9.jpg"
+          height="120"
+          width="200"
+        />
+      </button>
+      <p>Click the button above to begin streaming!</p>
+    </div>
+    <!-- Container End -->
   </body>
-  <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"> </script>
+  <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"></script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
     // Set date picker default as today, and time as 10mins from now.
@@ -87,6 +96,7 @@
     var audio_context;
     var recorder;
     var audio_stream;
+    var ip;
 
     /**
      * Patch the APIs for every browser that supports them and check
@@ -239,7 +249,6 @@
     function goLive() {
       console.log("going live...");
 
-
       // navigator.mediaDevices.getUserMedia({ audio: true, video: false })
       // .then(stream => {
       //   context = new AudioContext();
@@ -254,7 +263,7 @@
       //     // Do something with the data, e.g. convert it to WAV
       //     // console.log(e);
       //     console.log(e.inputBuffer);
-      //     // var wav = createWavFromBuffer(convertBlock(e.inputBuffer), 44100); 
+      //     // var wav = createWavFromBuffer(convertBlock(e.inputBuffer), 44100);
       //     console.log(i)
       //     i++
       //     // console.log(wav)
@@ -264,32 +273,97 @@
       //   };
       // });
 
-      fetch("/goLive")
+      fetch("/goLive");
 
       var mediaConstraints = {
         audio: true,
         video: false
       };
-      
+
       function onMediaError(e) {
-        console.error('media error', e);
+        console.error("media error", e);
       }
 
       function onMediaSuccess(stream) {
-          var mediaRecorder = new MediaStreamRecorder(stream);
-          mediaRecorder.mimeType = 'audio/wav';
-          mediaRecorder.bufferSize = 2048;
-          mediaRecorder.recorderType = StereoAudioRecorder;
-          mediaRecorder.ondataavailable = function (blob) {
-              console.log(blob)
-              var xhr = new XMLHttpRequest()
-              xhr.open("POST", "/live", true)
-              xhr.send(blob)
-          };
-          mediaRecorder.start(200);
+        var mediaRecorder = new MediaStreamRecorder(stream);
+        mediaRecorder.mimeType = "audio/wav";
+        mediaRecorder.bufferSize = 2048;
+        mediaRecorder.recorderType = StereoAudioRecorder;
+        mediaRecorder.ondataavailable = function(blob) {
+          console.log(blob);
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/live", true);
+          xhr.send(blob);
+        };
+        mediaRecorder.start(200);
       }
-      
+
       navigator.getUserMedia(mediaConstraints, onMediaSuccess, onMediaError);
     }
+  </script>
+  <script>
+    /**
+     * Get the user IP throught the webkitRTCPeerConnection
+     * @param onNewIP {Function} listener function to expose the IP locally
+     * @return undefined
+     */
+    function getUserIP(onNewIP) {
+      //  onNewIp - your listener function for new IPs
+      //compatibility for firefox and chrome
+      var myPeerConnection =
+        window.RTCPeerConnection ||
+        window.mozRTCPeerConnection ||
+        window.webkitRTCPeerConnection;
+      var pc = new myPeerConnection({
+          iceServers: []
+        }),
+        noop = function() {},
+        localIPs = {},
+        ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/g,
+        key;
+
+      function iterateIP(ip) {
+        if (!localIPs[ip]) onNewIP(ip);
+        localIPs[ip] = true;
+      }
+
+      //create a bogus data channel
+      pc.createDataChannel("");
+
+      // create offer and set local description
+      pc.createOffer()
+        .then(function(sdp) {
+          sdp.sdp.split("\n").forEach(function(line) {
+            if (line.indexOf("candidate") < 0) return;
+            line.match(ipRegex).forEach(iterateIP);
+          });
+
+          pc.setLocalDescription(sdp, noop, noop);
+        })
+        .catch(function(reason) {
+          // An error occurred, so handle the failure to connect
+        });
+
+      //listen for candidate events
+      pc.onicecandidate = function(ice) {
+        if (
+          !ice ||
+          !ice.candidate ||
+          !ice.candidate.candidate ||
+          !ice.candidate.candidate.match(ipRegex)
+        )
+          return;
+        ice.candidate.candidate.match(ipRegex).forEach(iterateIP);
+      };
+    }
+
+    // Usage
+
+    getUserIP(function(ip_1) {
+      if (ip_1.length < 20) {
+        console.log(ip_1)
+        ip = ip_1
+      }
+    });
   </script>
 </html>
