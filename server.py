@@ -5,6 +5,7 @@ import wave
 import time
 
 import threading  
+import datetime
 
 queue = []
 
@@ -35,8 +36,8 @@ class AsyncGitTask(threading.Thread):
 
       f.close()
 
-app = Flask(__name__)
 
+app = Flask(__name__)
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 2
@@ -45,9 +46,44 @@ CHUNK = 1024
 
 audio1 = pyaudio.PyAudio()
 
-is_recording = False
+""" 
+Some util methods
+"""
+def milliseconds_to_readable_date(millis):
+    date_string = datetime.datetime.fromtimestamp(int(millis)//1000)
+    return date_string.strftime("%Y-%m-%d %X")
 
+def date_string_to_milliseconds(date_string):
+    return int(datetime.datetime.strptime(date_string, "%Y-%m-%d %X").timestamp()*1000)
 
+def schedule_reminder(filename, extension):
+    filename_with_extension = filename + extension
+    reminder_time_millis = date_string_to_milliseconds(filename)
+
+    import sched, time
+
+    def play_reminder():
+      import os
+      if not os.path.exists(filename_with_extension):
+        return
+
+      import requests
+      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.85:5000/get_reminder/" + filename_with_extension + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
+      headers = {'Content-Type': 'application/xml'} # set what your server accepts
+      requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
+
+    print("Scheduling", filename_with_extension, "...")
+
+    # Set up scheduler
+    s = sched.scheduler(time.time, time.sleep)
+    # Schedule when you want the action to occur
+    s.enterabs(float(reminder_time_millis)//1000, 0, play_reminder)
+    # Block until the action has been run
+    s.run()
+
+"""
+Livestream
+"""
 def genHeader(sampleRate, bitsPerSample, channels):
     datasize = 2000*10**6
     o = bytes("RIFF",'ascii')                                               # (4byte) Marks file as RIFF
@@ -124,10 +160,9 @@ def live():
 def index():
     return render_template('index.html')
 
-@app.route('/testtest.wav')
-def get_recording():
-    return flask.send_file("./test.wav")
-
+"""
+Route to render the main UI of the app
+"""
 @app.route('/ui')
 def ui():
     # if request.url.startswith('http://'):
@@ -136,67 +171,83 @@ def ui():
     #     return flask.redirect(url, code=code)
     return render_template('ui.html')
 
-@app.route('/start')
-def start():
-    print("starting")
-    async_task = AsyncGitTask()
-    async_task.start()
-    return 'started'
+"""
+Route to get list of reminder file names
+"""
+@app.route('/get_all_reminders')
+def get_all_reminders():
+    import os, time
+    all_recordings = []
+    # List all files in a directory using os.listdir
+    basepath = 'reminders/'
+    for entry in os.listdir(basepath):
+        if os.path.isfile(os.path.join(basepath, entry)):
+            date_string = entry[0:-4]
+            print(date_string)
+            millis = date_string_to_milliseconds(date_string)
+            millis_now = time.time()*1000
+            if millis < millis_now:
+                # pending reminder, add to all recordings
+                all_recordings.append(entry)
+            else:
+                # already expired reminder, just remove
+                os.remove("reminders/" + entry)
+    myDict = {"recordings": all_recordings}
+    return myDict
 
-@app.route('/stop')
-def stop():
-    print("stopping")
-    global is_recording
-    is_recording = False
-    import soundfile as sf
+"""
+Route to get mp3 or wav file of your reminder, given filename (either text-to-speech or recorded)
+"""
+@app.route('/get_reminder/<name>')
+def get_reminder(name):
+    return flask.send_file("reminders/" + name)
 
-    data, samplerate = sf.read('output.wav')
-    sf.write('new_output.ogg', data, samplerate)
+"""
+Route to delete reminder
+"""
+@app.route('/delete_reminder/<name>', methods=['POST'])
+def delete_reminder(name):
+    import os
+    os.remove("reminders/" + name)
+    return "File Removed!"
 
-    return 'stopped'
-
-@app.route('/send', methods=['POST'])
-def send():
-    print("received file")
+"""
+Route to send recording from client
+"""
+@app.route('/send_recording', methods=['POST'])
+def send_recording():
+    print("Received recording from client.")
+    time = request.headers["time"]
     data = request.data
-    f = open('test.wav', 'wb')
+    filename = str(milliseconds_to_readable_date(time))
+
+    f = open("reminders/" + filename + ".wav", 'wb')
     f.write(data)
     f.close()
-    return "okokokok"
 
+    schedule_reminder(filename, ".wav")
+
+    return "Recording received, reminder scheduled."
+
+"""
+Route to send text for text-to-speech
+"""
 @app.route('/send_text', methods=['POST'])
 def send_text():
-    print("received text")
-    data = request.data
-    print(data)
+    print("Received text from client.")
+    mytext = request.form.get('text')
+    mytime = request.form.get('time')
 
+    from gtts import gTTS  
+    import time
 
-    # f = open('test.wav', 'wb')
-    # f.write(data)
-    # f.close()
-    return "okokokok"
+    myobj = gTTS(text=mytext, lang='en', slow=False)
+    filename = str(milliseconds_to_readable_date(mytime))
+    myobj.save("reminders/" + filename + ".mp3")
 
-@app.route('/recording', methods=['POST'])
-def recording():
-    data = request.data
-    print(data)
+    schedule_reminder(filename, ".mp3")
 
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 2
-    RATE = 44100
-    WAVE_OUTPUT_FILENAME = "output.wav"
-
-    p = pyaudio.PyAudio()
-
-    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(data))
-    wf.close()
-
-    return 'ok'
-
+    return "Text received, reminder scheduled."
 
 def http_app():
     app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
@@ -204,5 +255,5 @@ def http_app():
 if __name__ == "__main__":
     # from multiprocessing import Process
 
-    # Process(target=http_app, daemon=True).start()
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
+    Process(target=http_app,daemon=True).start()
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))

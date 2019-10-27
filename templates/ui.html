@@ -4,9 +4,13 @@
   </head>
   <body>
     <h3>hello food</h3>
-    <button onclick="sendDatRadioStream()">live</button>
+    <button onclick="goLive()">live</button>
     <button>reminder</button>
     <div id="reminder">
+      <label for="remind_date">Choose a date for your reminder</label>
+      <input type="date" id="remind_date" />
+      <br />
+
       <label for="remind">Choose a time for your reminder:</label>
       <input
         type="time"
@@ -17,29 +21,79 @@
         required
       />
 
-      <br>
+      <br />
       <label for="record">Record something for your reminder:</label>
       <button id="start-btn">record</button>
       <button id="stop-btn">stop</button>
 
-      <br>
+      <br />
       <label for="text-reminder">or write something!</label>
-      <input id="remind-text"/>
+      <input id="remind-text" />
       <button id="send-reminder-text" onclick="sendReminderText()">send</button>
 
+      <hr />
+      <ul id="recordings"></ul>
     </div>
   </body>
   <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"> </script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
+    // Set date picker default as today, and time as 10mins from now.
+    var current_time =
+      Math.floor((new Date().getTime() - 4 * 60 * 60 * 1000) / 1000) * 1000 +
+      10 * 60 * 1000;
+    document.getElementById("remind-time").valueAsDate = new Date(current_time);
+    document.getElementById("remind_date").valueAsDate = new Date();
+
+    updateListOfRecordings();
+
+    function updateListOfRecordings() {
+      // Get all the current recordings and display them
+      fetch("/get_all_reminders")
+        .then(res => res.json())
+        .then(json => {
+          const recordings = json.recordings.sort();
+          const ul = document.getElementById("recordings");
+          ul.innerHTML = ""; // Clear all the child
+          recordings.forEach(r => {
+            var li = document.createElement("li");
+            li.innerHTML = r;
+            var deleteButton = document.createElement("button");
+            deleteButton.innerHTML = "delete";
+            deleteButton.onclick = function() {
+              console.log("Deleting: ", r);
+              var oReq = new XMLHttpRequest();
+              oReq.open("POST", "/delete_reminder/" + r, true);
+              oReq.send();
+              li.remove();
+              deleteButton.remove();
+            };
+            li.appendChild(deleteButton);
+            ul.appendChild(li);
+          });
+        });
+    }
 
     function sendReminderText() {
       const text = document.getElementById("remind-text").value;
-      console.log(text)
+      console.log(text);
+      const date = document.getElementById("remind_date").value;
+      console.log(date);
+      const time = document.getElementById("remind-time").value;
+      console.log(time);
+
+      const millis = new Date(`${date} ${time}`).getTime();
+      console.log(millis);
 
       var oReq = new XMLHttpRequest();
-      oReq.open("POST", "/send", true);
-      oReq.send(text);
+      oReq.open("POST", "/send_text", true);
+      oReq.setRequestHeader(
+        "Content-type",
+        "application/x-www-form-urlencoded"
+      );
+      // oReq.send([text, time]);
+      oReq.send(`text=${text}&time=${millis}`);
+      setTimeout(updateListOfRecordings, 2000);
     }
 
     // Expose globally your audio_context, the recorder instance and audio_stream
@@ -176,29 +230,17 @@
             // Note:
             // Use the AudioBLOB for whatever you need, to download
             // directly in the browser, to upload to the server, you name it !
+            const date = document.getElementById("remind_date").value;
+            console.log(date);
+            const time = document.getElementById("remind-time").value;
+            console.log(time);
+            const millis = new Date(`${date} ${time}`).getTime();
 
             var oReq = new XMLHttpRequest();
-            oReq.open("POST", "/send", true);
+            oReq.open("POST", "/send_recording", true);
+            oReq.setRequestHeader("time", millis);
             oReq.send(AudioBLOB);
-            // In this case we are going to add an Audio item to the list so you
-            // can play every stored Audio
-            var url = URL.createObjectURL(AudioBLOB);
-            var li = document.createElement("li");
-            var au = document.createElement("audio");
-            var hf = document.createElement("a");
-
-            au.controls = true;
-            au.src = url;
-            hf.href = url;
-            // Important:
-            // Change the format of the file according to the mimetype
-            // e.g for audio/wav the extension is .wav
-            //     for audio/mpeg (mp3) the extension is .mp3
-            hf.download = new Date().toISOString() + ".wav";
-            hf.innerHTML = hf.download;
-            li.appendChild(au);
-            li.appendChild(hf);
-            // recordingslist.appendChild(li);
+            setTimeout(updateListOfRecordings, 2000);
           }, _AudioFormat);
         },
         false
@@ -207,8 +249,8 @@
 
     var live_audio_stream, context;
 
-    function sendDatRadioStream() {
-      console.log("Sending radio stream...");
+    function goLive() {
+      console.log("going live...");
 
 
       // navigator.mediaDevices.getUserMedia({ audio: true, video: false })
