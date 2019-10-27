@@ -32,6 +32,16 @@
           max="23:59"
           required
         />
+        <br/>
+
+        <label for="volume">Choose a volume for your reminder</label>
+        <input
+          type="range"
+          id="volume"
+          min="0"
+          max="100"
+          required
+        />
 
         <br />
         <label for="record">Record something for your reminder</label>
@@ -101,6 +111,9 @@
       const millis = new Date(`${date} ${time}`).getTime();
       console.log(millis);
 
+      const volume = document.getElementById("volume").value;
+      console.log(volume)
+      
       var oReq = new XMLHttpRequest();
       oReq.open("POST", "/send_text", true);
       oReq.setRequestHeader(
@@ -108,7 +121,7 @@
         "application/x-www-form-urlencoded"
       );
       // oReq.send([text, time]);
-      oReq.send(`text=${text}&time=${millis}`);
+      oReq.send(`text=${text}&time=${millis}&volume=${volume}`);
       setTimeout(updateListOfRecordings, 2000);
     }
 
@@ -251,10 +264,14 @@
             const time = document.getElementById("remind-time").value;
             console.log(time);
             const millis = new Date(`${date} ${time}`).getTime();
+            
+            const volume = document.getElementById("volume").value;
+            console.log(volume)
 
             var oReq = new XMLHttpRequest();
             oReq.open("POST", "/send_recording", true);
             oReq.setRequestHeader("time", millis);
+            oReq.setRequestHeader("volume", volume);
             oReq.send(AudioBLOB);
             setTimeout(updateListOfRecordings, 2000);
           }, _AudioFormat);
