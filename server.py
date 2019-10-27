@@ -278,6 +278,8 @@ def http_app():
     #app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
 
 if __name__ == "__main__":
-    from multiprocessing import Process
-    Process(target=http_app,daemon=True).start()
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
+    # from multiprocessing import Process
+    # Process(target=http_app,daemon=True).start()
+    # app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
+
