@@ -29,10 +29,10 @@ Some util methods
 """
 def milliseconds_to_readable_date(millis):
     date_string = datetime.datetime.fromtimestamp(int(millis)//1000)
-    return date_string.strftime("%Y-%m-%d %X")
+    return date_string.strftime("%Y-%m-%d %H-%M-%S")
 
 def date_string_to_milliseconds(date_string):
-    return int(datetime.datetime.strptime(date_string, "%Y-%m-%d %X").timestamp()*1000)
+    return int(datetime.datetime.strptime(date_string, "%Y-%m-%d %H-%M-%S").timestamp()*1000)
 
 def schedule_reminder(filename, extension, volume):
     filename_with_extension = filename + extension
