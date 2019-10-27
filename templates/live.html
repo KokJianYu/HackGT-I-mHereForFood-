@@ -1,0 +1,228 @@
+<html>
+  <head>
+    <title>Live Streaming</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+  </head>
+  <body>
+    <h2 id = "title"> <i>Bose Streaming App</i></h2>
+    <nav id="navbar">
+        <div class="containernav">
+          <ul>
+            <li><a href="#">Live Streaming</a></li>
+            <li><a href="ui.html">Recorded Streaming</a></li>
+          </ul>
+        </div>
+    </nav>
+
+    <div class = "containertext">
+        <br>
+        <button id = "livebutton" onclick="sendDatRadioStream()">
+            <img src="https://ak2.picdn.net/shutterstock/videos/5721572/thumb/9.jpg" height="120" width="200">
+        </button>
+        <p>Click the button above to begin streaming!</p>
+    </div> <!-- Container End -->
+  </body>
+  <script src="{{url_for('static', filename='recorder.js')}}"></script>
+  <script>
+    // Set date picker default as today
+    document.getElementById("remind_date").valueAsDate = new Date();
+    var current_time = Math.floor(((new Date()).getTime() - 4*60*60*1000) / 1000) * 1000 + 10*60*1000
+    document.getElementById("remind-time").valueAsDate = new Date(current_time);
+
+    function sendReminderText() {
+      const text = document.getElementById("remind-text").value;
+      console.log(text);
+      const date = document.getElementById("remind_date").value;
+      console.log(date);
+      const time = document.getElementById("remind-time").value;
+      console.log(time);
+
+      const millis = (new Date(`${date} ${time}`)).getTime()
+      console.log(millis)
+
+      var oReq = new XMLHttpRequest();
+      oReq.open("POST", "/send_text", true);
+      oReq.setRequestHeader(
+        "Content-type",
+        "application/x-www-form-urlencoded"
+      );
+      // oReq.send([text, time]);
+      oReq.send(`text=${text}&time=${millis}`);
+    }
+
+    // Expose globally your audio_context, the recorder instance and audio_stream
+    var audio_context;
+    var recorder;
+    var audio_stream;
+
+    /**
+     * Patch the APIs for every browser that supports them and check
+     * if getUserMedia is supported on the browser.
+     *
+     */
+    function Initialize() {
+      try {
+        // Monkeypatch for AudioContext, getUserMedia and URL
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        navigator.getUserMedia =
+          navigator.getUserMedia || navigator.webkitGetUserMedia;
+        window.URL = window.URL || window.webkitURL;
+
+        // Store the instance of AudioContext globally
+        audio_context = new AudioContext();
+        console.log("Audio context is ready !");
+        console.log(
+          "navigator.getUserMedia " +
+            (navigator.getUserMedia ? "available." : "not present!")
+        );
+      } catch (e) {
+        alert("No web audio support in this browser!");
+      }
+    }
+
+    /**
+     * Starts the recording process by requesting the access to the microphone.
+     * Then, if granted proceed to initialize the library and store the stream.
+     *
+     * It only stops when the method stopRecording is triggered.
+     */
+    function startRecording() {
+      audio_context.resume().then(() => {
+        console.log("Playback resumed successfully");
+      });
+      // Access the Microphone using the navigator.getUserMedia method to obtain a stream
+      navigator.getUserMedia(
+        { audio: true },
+        function(stream) {
+          // Expose the stream to be accessible globally
+          audio_stream = stream;
+          // Create the MediaStreamSource for the Recorder library
+          var input = audio_context.createMediaStreamSource(stream);
+          console.log("Media stream succesfully created");
+
+          // Initialize the Recorder Library
+          recorder = new Recorder(input);
+          console.log("Recorder initialised");
+
+          // Start recording !
+          recorder && recorder.record();
+          console.log("Recording...");
+
+          // Disable Record button and enable stop button !
+          document.getElementById("start-btn").disabled = true;
+          document.getElementById("stop-btn").disabled = false;
+        },
+        function(e) {
+          console.error("No live audio input: " + e);
+        }
+      );
+    }
+
+    /**
+     * Stops the recording process. The method expects a callback as first
+     * argument (function) executed once the AudioBlob is generated and it
+     * receives the same Blob as first argument. The second argument is
+     * optional and specifies the format to export the blob either wav or mp3
+     */
+    function stopRecording(callback, AudioFormat) {
+      // Stop the recorder instance
+      recorder && recorder.stop();
+      console.log("Stopped recording.");
+
+      // Stop the getUserMedia Audio Stream !
+      audio_stream.getAudioTracks()[0].stop();
+
+      // Disable Stop button and enable Record button !
+      document.getElementById("start-btn").disabled = false;
+      document.getElementById("stop-btn").disabled = true;
+
+      // Use the Recorder Library to export the recorder Audio as a .wav file
+      // The callback providen in the stop recording method receives the blob
+      if (typeof callback == "function") {
+        /**
+         * Export the AudioBLOB using the exportWAV method.
+         * Note that this method exports too with mp3 if
+         * you provide the second argument of the function
+         */
+        recorder &&
+          recorder.exportWAV(function(blob) {
+            callback(blob);
+
+            // create WAV download link using audio data blob
+            // createDownloadLink();
+
+            // Clear the Recorder to start again !
+            recorder.clear();
+          }, AudioFormat || "audio/wav");
+      }
+    }
+
+    // Initialize everything once the window loads
+    window.onload = function() {
+      // Prepare and check if requirements are filled
+      Initialize();
+
+      // Handle on start recording button
+      document.getElementById("start-btn").addEventListener(
+        "click",
+        function() {
+          startRecording();
+        },
+        false
+      );
+
+      // Handle on stop recording button
+      document.getElementById("stop-btn").addEventListener(
+        "click",
+        function() {
+          // Use wav format
+          var _AudioFormat = "audio/wav";
+          // You can use mp3 to using the correct mimetype
+          //var AudioFormat = "audio/mpeg";
+
+          stopRecording(function(AudioBLOB) {
+            // Note:
+            // Use the AudioBLOB for whatever you need, to download
+            // directly in the browser, to upload to the server, you name it !
+
+            var oReq = new XMLHttpRequest();
+            oReq.open("POST", "/send", true);
+            oReq.send(AudioBLOB);
+            // In this case we are going to add an Audio item to the list so you
+            // can play every stored Audio
+            var url = URL.createObjectURL(AudioBLOB);
+            var li = document.createElement("li");
+            var au = document.createElement("audio");
+            var hf = document.createElement("a");
+
+            au.controls = true;
+            au.src = url;
+            hf.href = url;
+            // Important:
+            // Change the format of the file according to the mimetype
+            // e.g for audio/wav the extension is .wav
+            //     for audio/mpeg (mp3) the extension is .mp3
+            hf.download = new Date().toISOString() + ".wav";
+            hf.innerHTML = hf.download;
+            li.appendChild(au);
+            li.appendChild(hf);
+            // recordingslist.appendChild(li);
+          }, _AudioFormat);
+        },
+        false
+      );
+    };
+  </script>
+
+  <script>
+    function sendDatRadioStream() {
+      console.log("Sending radio stream...");
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/send", true);
+      xhr.setRequestHeader("Content-Type", "text/xml");
+      var xml =
+        "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://85.186.254.205:50390//;stream/1</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>25</volume></play_info>";
+      xhr.send(xml);
+    }
+  </script>
+</html>

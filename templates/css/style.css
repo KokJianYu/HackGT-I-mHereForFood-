@@ -1,0 +1,84 @@
+body{
+	background-color:#f4f4f4;
+	color:#fff;
+	font: normal 18px Arial, Helvetica, sans-serif;
+	line-height:1.6em;
+    margin:0;
+    padding: 0;
+    background-image:url('../images/bgimage.jpg');
+    background-repeat: no-repeat;
+}
+
+.containertext{
+	color:#fff;
+	border:3px #CC0022 solid;
+	padding:20px;
+    margin:20px;
+    text-align: center;
+}
+
+.containernav{
+	width:80%;
+	margin:auto;
+    overflow:hidden;
+    font-size: 16px;
+}
+
+.myButton {
+	box-shadow:inset 0px 0px 15px 3px #23395e;
+	background:linear-gradient(to bottom, #2e466e 5%, #415989 100%);
+	background-color:#2e466e;
+	border-radius:17px;
+	border:1px solid #1f2f47;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	padding:4px 13px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #263666;
+}
+.myButton:hover {
+	background:linear-gradient(to bottom, #415989 5%, #2e466e 100%);
+	background-color:#415989;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
+
+#title{
+    text-align: center;
+    padding-top:20px;
+    color: #FFFFFF;
+    text-shadow: 0 -1px 4px #FFF, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #F00;
+    color: #FFFFFF;
+}
+
+#navbar{
+	background-image:url('../images/navimage.jpg');
+    color:#fff;
+    text-align: center;
+}
+
+#navbar ul{
+	padding:0;
+	list-style: none;
+}
+
+#navbar li{
+	display:inline;
+}
+
+#navbar a{
+	color:#fff;
+	text-decoration: none;
+	font-size:18px;
+    padding: 20px;
+    border: 2px solid #fff;
+}
+
+#livebutton{
+    background-color:black;
+}
