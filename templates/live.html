@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Recorded Streaming</title>
+    <title>Live Streaming</title>
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.css')}}">
   </head>
   <body>
@@ -8,46 +8,19 @@
     <nav id="navbar">
         <div class="containernav">
           <ul>
-            <li><a href="{{ url_for('live_ui') }}">Live Streaming</a></li>
-            <li><a href="#">Recorded Streaming</a></li>
+            <li><a href="#">Live Streaming</a></li>
+            <li><a href="{{ url_for('ui') }}">Recorded Streaming</a></li>
           </ul>
         </div>
     </nav>
 
     <div class = "containertext">
-      <div id="reminder">
-        <label for="remind_date">Choose a date for your reminder</label>
-        <input
-          type="date"
-          id="remind_date"
-        />
         <br>
-
-        <label for="remind">Choose a time for your reminder</label>
-        <input
-          type="time"
-          id="remind-time"
-          name="remind"
-          min="00:00"
-          max="23:59"
-          required
-        />
-
-        <br />
-        <label for="record">Record something for your reminder</label>
-        <button class="myButton" id="start-btn">Record</button>
-        <button class="myButton" id="stop-btn">Stop</button>
-
-        <br />
-        <label for="text-reminder">Write something!</label>
-        <input id="remind-text" />
-        <button class="myButton" id="send-reminder-text" onclick="sendReminderText()">Send</button>
-      </div>
+        <button id = "livebutton" onclick="goLive()">
+            <img src="https://ak2.picdn.net/shutterstock/videos/5721572/thumb/9.jpg" height="120" width="200">
+        </button>
+        <p>Click the button above to begin streaming!</p>
     </div> <!-- Container End -->
-
-    <hr />
-      <ul id="recordings"></ul>
-      
   </body>
   <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"> </script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>

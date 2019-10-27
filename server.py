@@ -64,11 +64,11 @@ def schedule_reminder(filename, extension):
 
     def play_reminder():
       import os
-      if not os.path.exists(filename_with_extension):
+      if not os.path.exists("reminders/" + filename_with_extension):
         return
 
       import requests
-      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.85:5000/get_reminder/" + filename_with_extension + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
+      xml = "<play_info><app_key>CMwhZOwJsgUUclRmJ7k8dpv2KF2F8Qgr</app_key><url>http://192.168.1.85:5000/get_reminder/" + filename_with_extension.replace(" ", "%20") + "</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
       headers = {'Content-Type': 'application/xml'} # set what your server accepts
       requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 
@@ -174,6 +174,17 @@ def ui():
     return render_template('ui.html')
 
 """
+Route to render the live UI of the app
+"""
+@app.route('/live_ui')
+def live_ui():
+    # if request.url.startswith('http://'):
+    #     url = request.url.replace('http://', 'https://', 1).replace("5000", "5001", 1)
+    #     code = 301
+    #     return flask.redirect(url, code=code)
+    return render_template('live.html')
+
+"""
 Route to get list of reminder file names
 """
 @app.route('/get_all_reminders')
@@ -185,10 +196,9 @@ def get_all_reminders():
     for entry in os.listdir(basepath):
         if os.path.isfile(os.path.join(basepath, entry)):
             date_string = entry[0:-4]
-            print(date_string)
             millis = date_string_to_milliseconds(date_string)
             millis_now = time.time()*1000
-            if millis < millis_now:
+            if millis > millis_now:
                 # pending reminder, add to all recordings
                 all_recordings.append(entry)
             else:
