@@ -170,19 +170,12 @@ def live():
     response.headers["Referrer-Policy"] = "unsafe-url"
     return response
 
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 """
 Route to render the main UI of the app
 """
-@app.route('/ui')
+@app.route('/')
 def ui():
-    # if request.url.startswith('http://'):
-    #     url = request.url.replace('http://', 'https://', 1).replace("5000", "5001", 1)
-    #     code = 301
-    #     return flask.redirect(url, code=code)
     return render_template('ui.html')
 
 """
@@ -273,13 +266,6 @@ def send_text():
 
     return "Text received, reminder scheduled."
 
-def http_app():
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
-    #app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
-
 if __name__ == "__main__":
-    # from multiprocessing import Process
-    # Process(target=http_app,daemon=True).start()
-    # app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
     app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
 
