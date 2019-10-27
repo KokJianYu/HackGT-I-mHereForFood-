@@ -142,6 +142,8 @@ def goLive():
     headers = {'Content-Type': 'application/xml'} # set what your server accepts
     requests.post('http://192.168.1.251:8090/speaker', data=xml, headers=headers)
 
+    return "ok"
+
 @app.route('/live', methods=['POST'])
 def live():
     # print("received audio")
@@ -153,7 +155,7 @@ def live():
     wf = wave.open('test.wav', 'rb')
     chunk = wf.readframes(wf.getnframes())
     wf.close()
-    queue.append(data)
+    queue.append(chunk)
     return "ok"
 
 @app.route('/')
@@ -263,7 +265,9 @@ def http_app():
     app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
 
 if __name__ == "__main__":
-    # from multiprocessing import Process
+    from multiprocessing import Process
 
-    # Process(target=http_app,daemon=True).start()
-    app.run(host='0.0.0.0', debug=True, threaded=True, port=5001, ssl_context=("ssl/domain.crt", "ssl/domain.key"))
+    Process(target=http_app,daemon=True).start()
+    app.run(host='0.0.0.0', debug=True, threaded=True, port=443, ssl_context=("adhoc"))
+
+    # app.run(host='0.0.0.0', debug=True, threaded=True, port=5000)
