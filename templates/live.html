@@ -34,7 +34,6 @@
   <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"></script>
   <script src="{{url_for('static', filename='recorder.js')}}"></script>
   <script>
-
     var recording = false;
     var ip = window.location.href.split(":")[1].split("//")[1];
     var audio_context;
@@ -45,7 +44,7 @@
      * if getUserMedia is supported on the browser.
      *
      */
-     function Initialize() {
+    function Initialize() {
       try {
         // Monkeypatch for AudioContext, getUserMedia and URL
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -78,21 +77,25 @@
         },
         false
       );
-    }
+    };
 
     function toggleButton() {
       if (recording) {
         recording = false;
+        document
+          .getElementById("livebutton")
+          .classList.remove("clickedLiveButton");
         stopRecording();
       } else {
         recording = true;
+        document.getElementById("livebutton").className += "clickedLiveButton";
         goLive();
       }
     }
 
     function stopRecording() {
       // Stop the recorder instance
-      fetch("/stopLive")
+      fetch("/stopLive");
       mediaRecorder.stop();
       mediaRecorder.stream.stop();
       console.log("Stopped recording.");

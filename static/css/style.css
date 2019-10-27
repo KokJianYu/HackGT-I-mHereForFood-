@@ -109,7 +109,12 @@ body{
 	border-width: 10px;  
 }
 
-#livebutton:focus {     
+/* #livebutton:focus {     
+	border-color:red;  
+	border-width: 10px;  
+} */
+
+.clickedLiveButton{
 	border-color:red;  
 	border-width: 10px;  
 }
